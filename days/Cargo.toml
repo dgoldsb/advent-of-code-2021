@@ -1,0 +1,12 @@
+[package]
+name = "days"
+version = "0.1.0"
+authors = ["dgoldsb <dgoldsb@live.nl>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aoc = { path = "../aoc" }
+md5 = "0.7.0"
+regex = "1.4.3"

@@ -1,0 +1,15 @@
+[package]
+authors = ["Dylan Goldsborough <dgoldsb@live.nl>"]
+license = "MIT"
+name = "aoc-2021"
+readme = "README.md"
+version = "0.0.1"
+edition = "2018"
+
+[[bin]]
+name = "aoc-2016"
+path = "runner/main.rs"
+
+[dependencies]
+days = { path = "days" }
+
