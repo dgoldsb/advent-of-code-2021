@@ -7,7 +7,7 @@ version = "0.0.1"
 edition = "2018"
 
 [[bin]]
-name = "aoc-2016"
+name = "aoc-2021"
 path = "runner/main.rs"
 
 [dependencies]
