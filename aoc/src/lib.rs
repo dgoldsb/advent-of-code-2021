@@ -24,3 +24,15 @@ pub fn parse_items(day: String, delimiter: String) -> Vec<String> {
 pub fn parse_lines(day: String) -> Vec<String> {
     read_file(day).split("\n").map(|i| i.to_string()).collect()
 }
+
+
+pub fn to_bin(number: &usize) -> Vec<char> {
+    return format!("{:0>36}", format!("{:b}", number))
+        .chars()
+        .collect();
+}
+
+pub fn from_bin(bin_number: &Vec<char>) -> usize {
+    let bin_str: String = bin_number.into_iter().collect();
+    return usize::from_str_radix(&bin_str, 2).unwrap();
+}
