@@ -1,6 +1,13 @@
 use regex::Regex;
 use std::fs;
 
+pub fn ints_from_str(input: &String) -> Vec<isize> {
+    let re = Regex::new(r"([-+]?\d+)\D?").unwrap();
+    re.captures_iter(input)
+        .map(|c| c[1].parse().expect("Something went wrong parsing an int"))
+        .collect()
+}
+
 pub fn read_file(day: String) -> String {
     fs::read_to_string(format!("input/{}.txt", day)).expect("Something went wrong reading the file")
 }
