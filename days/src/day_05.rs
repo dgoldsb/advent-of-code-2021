@@ -4,8 +4,6 @@ use std::cmp;
 use std::collections::HashSet;
 use std::str::FromStr;
 
-// TODO: Oof, this is slow. Refactor.
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct Vent {
     x: isize,
@@ -30,11 +28,29 @@ impl FromStr for VentRow {
         let y0 = *numbers.get(1).unwrap();
         let y1 = *numbers.get(3).unwrap();
 
+        // Horizontal and vertical.
         for x in cmp::min(x0, x1)..=cmp::max(x0, x1) {
             for y in cmp::min(y0, y1)..=cmp::max(y0, y1) {
-                if x0 == x1 || y0 == y1 || x == y {
+                if x0 == x1 || y0 == y1 {
                     vents.insert(Vent { x, y });
                 }
+            }
+        }
+
+        // Diagonal, less elegant because Rust does not appear to like descending ranges,
+        let mut x = x0;
+        let mut y = y0;
+        while (x != x1) && (y != y1) {
+            vents.insert(Vent { x, y });
+            if x0 != x1 {
+                x += (x1 - x0) / (x1 - x0).abs();
+            }
+            if y0 != y1 {
+                y += (y1 - y0) / (y1 - y0).abs();
+            }
+
+            if (x == x1) && (y == y1) {
+                vents.insert(Vent { x, y });
             }
         }
 
@@ -45,35 +61,39 @@ impl FromStr for VentRow {
 }
 
 impl VentRow {
-    fn overlaps(&self, other: &VentRow) -> HashSet<Vent> {
+    fn overlaps(&self, other: &HashSet<Vent>) -> HashSet<Vent> {
         self.vents
-            .intersection(&other.vents)
+            .intersection(&other)
             .map(|v| v.clone())
             .collect::<HashSet<Vent>>()
     }
 }
 
-fn part_a(raw_inputs: &Vec<String>) -> usize {
+fn solve(raw_inputs: &Vec<String>, diagonals: bool) -> usize {
     let vent_rows: Vec<VentRow> = raw_inputs
         .iter()
         .map(|s| VentRow::from_str(s).unwrap())
         .collect();
-    let mut set: HashSet<Vent> = HashSet::new();
 
-    for this in &vent_rows {
-        for other in &vent_rows {
-            // Filter out diagonals.
-            if (this != other) && !this.diagonal && !other.diagonal {
-                let overlap = this.overlaps(other);
-                set = set.union(&overlap).map(|v| v.clone()).collect();
-            }
+    let mut taken: HashSet<Vent> = HashSet::new();
+    let mut overlaps: HashSet<Vent> = HashSet::new();
+
+    for vent_row in &vent_rows {
+        // Filter out diagonals if necessary.
+        if !vent_row.diagonal || diagonals {
+            overlaps = overlaps
+                .union(&vent_row.overlaps(&taken))
+                .map(|v| v.clone())
+                .collect();
+            taken = taken.union(&vent_row.vents).map(|v| v.clone()).collect();
         }
     }
-    set.len()
+
+    overlaps.len()
 }
 
 pub fn day_05() {
     let raw_inputs = parse_lines("day_05".to_string());
-    println!("A: {}", part_a(&raw_inputs));
-    println!("B: {}", part_a(&raw_inputs));
+    println!("A: {}", solve(&raw_inputs, false));
+    println!("B: {}", solve(&raw_inputs, true));
 }
