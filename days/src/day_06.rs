@@ -20,7 +20,7 @@ fn solve(inputs: &Vec<isize>, duration: isize) -> usize {
                 let new_fish_count = new_fish.entry(6).or_insert(0);
                 *new_fish_count += fish_count;
 
-                // Children are set to 8
+                // Children are set to 8.
                 let new_fish_count = new_fish.entry(8).or_insert(0);
                 *new_fish_count += fish_count;
             } else {
