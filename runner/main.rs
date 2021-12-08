@@ -5,6 +5,7 @@ use days::day_04::day_04;
 use days::day_05::day_05;
 use days::day_06::day_06;
 use days::day_07::day_07;
+use days::day_08::day_08;
 use std::env;
 
 fn main() {
@@ -43,5 +44,10 @@ fn main() {
     if args.contains(&"all".to_string()) || args.contains(&"7".to_string()) {
         println!("Running day {}", 7);
         day_07();
+    }
+
+    if args.contains(&"all".to_string()) || args.contains(&"8".to_string()) {
+        println!("Running day {}", 8);
+        day_08();
     }
 }
