@@ -10,68 +10,68 @@ use days::day_09::day_09;
 use days::day_10::day_10;
 use days::day_11::day_11;
 use days::day_12::day_12;
+use days::day_13::day_13;
+use days::day_14::day_14;
+use days::day_15::day_15;
+use days::day_16::day_16;
+use days::day_17::day_17;
+use days::day_18::day_18;
+use days::day_19::day_19;
+use days::day_20::day_20;
+use days::day_21::day_21;
+use days::day_22::day_22;
+use days::day_23::day_23;
+use days::day_24::day_24;
+use days::day_25::day_25;
+use std::collections::HashMap;
 use std::env;
+use std::time::Instant;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.contains(&"all".to_string()) || args.contains(&"1".to_string()) {
-        println!("Running day {}", 1);
-        day_01();
-    }
+    let mut methods: HashMap<String, fn()> = HashMap::new();
+    methods.insert("01".to_string(), day_01);
+    methods.insert("02".to_string(), day_02);
+    methods.insert("03".to_string(), day_03);
+    methods.insert("04".to_string(), day_04);
+    methods.insert("05".to_string(), day_05);
+    methods.insert("06".to_string(), day_06);
+    methods.insert("07".to_string(), day_07);
+    methods.insert("08".to_string(), day_08);
+    methods.insert("09".to_string(), day_09);
+    methods.insert("10".to_string(), day_10);
+    methods.insert("11".to_string(), day_11);
+    methods.insert("12".to_string(), day_12);
+    methods.insert("13".to_string(), day_13);
+    methods.insert("14".to_string(), day_14);
+    methods.insert("15".to_string(), day_15);
+    methods.insert("16".to_string(), day_16);
+    methods.insert("17".to_string(), day_17);
+    methods.insert("18".to_string(), day_18);
+    methods.insert("19".to_string(), day_19);
+    methods.insert("20".to_string(), day_20);
+    methods.insert("21".to_string(), day_21);
+    methods.insert("22".to_string(), day_22);
+    methods.insert("23".to_string(), day_23);
+    methods.insert("24".to_string(), day_24);
+    methods.insert("25".to_string(), day_25);
 
-    if args.contains(&"all".to_string()) || args.contains(&"2".to_string()) {
-        println!("Running day {}", 2);
-        day_02();
+    let mut days = args.iter().collect::<Vec<&String>>();
+    days.remove(0);
+    if days.is_empty() {
+        days.extend(methods.keys());
     }
-
-    if args.contains(&"all".to_string()) || args.contains(&"3".to_string()) {
-        println!("Running day {}", 3);
-        day_03();
+    days.sort();
+    let start = Instant::now();
+    for day in days {
+        let now = Instant::now();
+        println!("Running day {}", day);
+        match methods.get(day) {
+            Some(f) => f(),
+            None => panic!("unknown day"),
+        };
+        println!("{} ms\n", now.elapsed().as_millis());
     }
-
-    if args.contains(&"all".to_string()) || args.contains(&"4".to_string()) {
-        println!("Running day {}", 4);
-        day_04();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"5".to_string()) {
-        println!("Running day {}", 5);
-        day_05();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"6".to_string()) {
-        println!("Running day {}", 6);
-        day_06();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"7".to_string()) {
-        println!("Running day {}", 7);
-        day_07();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"8".to_string()) {
-        println!("Running day {}", 8);
-        day_08();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"9".to_string()) {
-        println!("Running day {}", 9);
-        day_09();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"10".to_string()) {
-        println!("Running day {}", 10);
-        day_10();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"11".to_string()) {
-        println!("Running day {}", 11);
-        day_11();
-    }
-
-    if args.contains(&"all".to_string()) || args.contains(&"12".to_string()) {
-        println!("Running day {}", 12);
-        day_12();
-    }
+    println!("Total: {} ms", start.elapsed().as_millis());
 }
