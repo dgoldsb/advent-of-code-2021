@@ -1,17 +1,6 @@
-use aoc::parse_lines;
+use aoc::parse_u32_map;
 use std::collections::HashMap;
 use std::collections::HashSet;
-
-// TODO: Add to public module, this is duplicate code.
-fn deserialize(input: &Vec<Vec<u32>>) -> HashMap<(i32, i32), u32> {
-    let mut map = HashMap::new();
-    for (i, l) in input.iter().enumerate() {
-        for (j, v) in l.iter().enumerate() {
-            map.insert((i as i32, j as i32), v.clone());
-        }
-    }
-    map
-}
 
 fn flash(k: &(i32, i32), old: &mut HashMap<(i32, i32), u32>, flashes: &mut HashSet<(i32, i32)>) {
     old.insert(*k, 0);
@@ -58,8 +47,8 @@ fn do_step(old: &mut HashMap<(i32, i32), u32>) -> usize {
     flashes.len()
 }
 
-fn solve(input: &Vec<Vec<u32>>, part_a: bool) -> usize {
-    let mut current_state = deserialize(input);
+fn solve(part_a: bool) -> usize {
+    let mut current_state = parse_u32_map("day_11".to_string());
 
     let mut flashes = 0;
     let mut i = 0;
@@ -75,14 +64,6 @@ fn solve(input: &Vec<Vec<u32>>, part_a: bool) -> usize {
 }
 
 pub fn day_11() {
-    let input = parse_lines("day_11".to_string())
-        .iter()
-        .map(|l| {
-            l.chars()
-                .map(|c| c.to_digit(10).unwrap())
-                .collect::<Vec<u32>>()
-        })
-        .collect::<Vec<Vec<u32>>>();
-    println!("A: {}", solve(&input, true));
-    println!("B: {}", solve(&input, false));
+    println!("A: {}", solve(true));
+    println!("B: {}", solve(false));
 }
