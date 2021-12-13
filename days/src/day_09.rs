@@ -69,8 +69,7 @@ fn solve_b(map: &HashMap<(i32, i32), u32>) -> usize {
         .fold(1, |a, b| a * b)
 }
 
-pub fn day_09() {
+pub fn day_09() -> (usize, usize) {
     let map = parse_u32_map("day_09".to_string());
-    println!("A: {}", solve_a(&map));
-    println!("B: {}", solve_b(&map));
+    (solve_a(&map) as usize, solve_b(&map) as usize)
 }

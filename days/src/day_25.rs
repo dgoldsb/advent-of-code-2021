@@ -5,8 +5,7 @@ fn solve(_input: &Vec<String>, _part_a: bool) -> usize {
     0
 }
 
-pub fn day_25() {
+pub fn day_25() -> (usize, usize) {
     let input = parse_lines("day_25".to_string());
-    println!("A: {}", solve(&input, true));
-    println!("B: {}", solve(&input, false));
+    (solve(&input, true), solve(&input, false))
 }

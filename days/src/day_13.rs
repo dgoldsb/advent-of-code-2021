@@ -57,13 +57,13 @@ fn solve(input: &String, part_a: bool) -> usize {
             return grid.len();
         }
     }
-    pretty_print(&grid);
+    if false {
+        pretty_print(&grid);
+    }
     0
 }
 
-pub fn day_13() {
+pub fn day_13() -> (usize, usize) {
     let input = read_file("day_13".to_string());
-    println!("A: {}", solve(&input, true));
-    println!("B:");
-    solve(&input, false);
+    (solve(&input, true), solve(&input, false))
 }

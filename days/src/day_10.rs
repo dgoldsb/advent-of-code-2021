@@ -59,8 +59,7 @@ fn solve_b(lines: &Vec<String>) -> isize {
     values.get(values.len() / 2).unwrap() * -1
 }
 
-pub fn day_10() {
+pub fn day_10() -> (usize, usize) {
     let input = parse_lines("day_10".to_string());
-    println!("A: {}", solve_a(&input));
-    println!("B: {}", solve_b(&input));
+    (solve_a(&input) as usize, solve_b(&input) as usize)
 }

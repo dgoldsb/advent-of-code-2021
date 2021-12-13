@@ -39,8 +39,7 @@ fn solve(inputs: &Vec<isize>, is_a: bool) -> isize {
     }
 }
 
-pub fn day_07() {
+pub fn day_07() -> (usize, usize) {
     let inputs = parse_ints("day_07".to_string());
-    println!("A: {}", solve(&inputs, true));
-    println!("B: {}", solve(&inputs, false));
+    (solve(&inputs, true) as usize, solve(&inputs, false) as usize)
 }

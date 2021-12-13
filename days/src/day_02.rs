@@ -56,12 +56,11 @@ fn part_b(operations: &Vec<Operation>) -> usize {
     x * y
 }
 
-pub fn day_02() {
+pub fn day_02()  -> (usize, usize) {
     let instructions = parse_lines("day_02".to_string());
     let operations = instructions
         .iter()
         .map(|i| Operation::from_str(i).unwrap())
         .collect();
-    println!("A: {}", part_a(&operations));
-    println!("B: {}", part_b(&operations));
+    (part_a(&operations), part_b(&operations))
 }

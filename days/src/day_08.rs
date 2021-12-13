@@ -136,11 +136,10 @@ fn solve_b(entries: &Vec<Entry>) -> usize {
         .sum()
 }
 
-pub fn day_08() {
+pub fn day_08() -> (usize, usize) {
     let entries = parse_lines("day_08".to_string())
         .iter()
         .map(|s| Entry::from_str(s).unwrap())
         .collect::<Vec<Entry>>();
-    println!("A: {}", solve_a(&entries));
-    println!("B: {}", solve_b(&entries));
+    (solve_a(&entries), solve_b(&entries))
 }

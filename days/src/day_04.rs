@@ -109,8 +109,7 @@ fn part_b(raw_inputs: &Vec<String>) -> isize {
     panic!("no solution found")
 }
 
-pub fn day_04() {
+pub fn day_04() -> (usize, usize) {
     let instructions = parse_items("day_04".to_string(), "\n\n".to_string());
-    println!("A: {}", part_a(&instructions));
-    println!("B: {}", part_b(&instructions));
+    (part_a(&instructions) as usize, part_b(&instructions) as usize)
 }

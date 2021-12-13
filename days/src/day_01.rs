@@ -1,7 +1,7 @@
 use aoc::parse_ints;
 
-fn part_a(inputs: &Vec<isize>, window: usize) -> u16 {
-    let mut count: u16 = 0;
+fn part_a(inputs: &Vec<isize>, window: usize) -> usize {
+    let mut count: usize = 0;
 
     for i in 1..(inputs.len() + 1 - window) {
         let mut cum_a = 0;
@@ -21,8 +21,7 @@ fn part_a(inputs: &Vec<isize>, window: usize) -> u16 {
     count
 }
 
-pub fn day_01() {
+pub fn day_01() -> (usize, usize) {
     let inputs = parse_ints("day_01".to_string());
-    println!("A: {}", part_a(&inputs, 1));
-    println!("B: {}", part_a(&inputs, 3));
+    (part_a(&inputs, 1), part_a(&inputs, 3))
 }

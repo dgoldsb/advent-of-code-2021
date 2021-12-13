@@ -63,7 +63,6 @@ fn solve(part_a: bool) -> usize {
     return flashes;
 }
 
-pub fn day_11() {
-    println!("A: {}", solve(true));
-    println!("B: {}", solve(false));
+pub fn day_11() -> (usize, usize) {
+    (solve(true), solve(false))
 }

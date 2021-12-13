@@ -30,7 +30,7 @@ use std::time::Instant;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let mut methods: HashMap<String, fn()> = HashMap::new();
+    let mut methods: HashMap<String, fn() -> (usize, usize)> = HashMap::new();
     methods.insert("01".to_string(), day_01);
     methods.insert("02".to_string(), day_02);
     methods.insert("03".to_string(), day_03);
@@ -64,14 +64,25 @@ fn main() {
     }
     days.sort();
     let start = Instant::now();
+    println!(
+        "{0: <4} | {1: <20} | {2: <20} | {3: <20}",
+        "Day", "Part A", "Part B", "Runtime"
+    );
     for day in days {
         let now = Instant::now();
-        println!("Running day {}", day);
-        match methods.get(day) {
+        let t = match methods.get(day) {
             Some(f) => f(),
             None => panic!("unknown day"),
         };
-        println!("{} ms\n", now.elapsed().as_millis());
+        let runtime = format!(
+            "{}.{} ms",
+            now.elapsed().as_millis(),
+            now.elapsed().as_nanos() % 1000000
+        );
+        println!(
+            "{0: <4} | {1: <20} | {2: <20} | {3: <20}",
+            day, t.0, t.1, runtime,
+        );
     }
-    println!("Total: {} ms", start.elapsed().as_millis());
+    println!("\nTotal {} ms", start.elapsed().as_millis());
 }

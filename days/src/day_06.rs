@@ -34,8 +34,7 @@ fn solve(inputs: &Vec<isize>, duration: isize) -> usize {
     fish.values().sum()
 }
 
-pub fn day_06() {
+pub fn day_06() -> (usize, usize) {
     let inputs = parse_ints("day_06".to_string());
-    println!("A: {}", solve(&inputs, 80));
-    println!("B: {}", solve(&inputs, 256));
+    (solve(&inputs, 80), solve(&inputs, 256))
 }

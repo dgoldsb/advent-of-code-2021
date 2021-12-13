@@ -92,8 +92,7 @@ fn solve(raw_inputs: &Vec<String>, diagonals: bool) -> usize {
     overlaps.len()
 }
 
-pub fn day_05() {
+pub fn day_05() -> (usize, usize) {
     let raw_inputs = parse_lines("day_05".to_string());
-    println!("A: {}", solve(&raw_inputs, false));
-    println!("B: {}", solve(&raw_inputs, true));
+    (solve(&raw_inputs, false), solve(&raw_inputs, true))
 }

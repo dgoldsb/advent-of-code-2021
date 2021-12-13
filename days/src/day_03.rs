@@ -93,8 +93,7 @@ fn part_b(instructions: &Vec<String>) -> usize {
     oxygen * co2
 }
 
-pub fn day_03() {
+pub fn day_03() -> (usize, usize) {
     let instructions = parse_lines("day_03".to_string());
-    println!("A: {}", part_a(&instructions));
-    println!("B: {}", part_b(&instructions));
+    (part_a(&instructions), part_b(&instructions))
 }

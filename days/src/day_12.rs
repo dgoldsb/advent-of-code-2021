@@ -54,8 +54,7 @@ fn solve(input: &HashMap<String, HashSet<String>>, allow_single_double: bool) ->
     find_paths(&vec!["start".to_string()], input, allow_single_double).len()
 }
 
-pub fn day_12() {
+pub fn day_12() -> (usize, usize) {
     let input = parse_input();
-    println!("A: {}", solve(&input, false));
-    println!("B: {}", solve(&input, true));
+    (solve(&input, false), solve(&input, true))
 }
