@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fs;
 
 pub fn ints_from_str(input: &String) -> Vec<isize> {
@@ -7,6 +8,19 @@ pub fn ints_from_str(input: &String) -> Vec<isize> {
     re.captures_iter(input)
         .map(|c| c[1].parse().expect("Something went wrong parsing an int"))
         .collect()
+}
+
+pub fn binary_grid_from_string(input: &String) -> HashSet<(isize, isize)> {
+    let pairs = input
+        .split("\n")
+        .map(|l| ints_from_str(&l.to_string()))
+        .collect::<Vec<Vec<isize>>>();
+
+    let mut set = HashSet::new();
+    pairs.iter().for_each(|v| {
+        set.insert((v.get(0).unwrap().clone(), v.get(1).unwrap().clone()));
+    });
+    set
 }
 
 pub fn read_file(day: String) -> String {
