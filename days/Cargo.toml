@@ -10,3 +10,4 @@ edition = "2018"
 aoc = { path = "../aoc" }
 md5 = "0.7.0"
 regex = "1.4.3"
+priority-queue = "0.5.2"

@@ -29,8 +29,15 @@ version = "0.1.0"
 dependencies = [
  "aoc",
  "md5",
+ "priority-queue",
  "regex",
 ]
+
+[[package]]
+name = "indexmap"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7164c96d6e18ccc3ce43f3dedac996c21a220670a106c275b96ad92110401362"
 
 [[package]]
 name = "md5"
@@ -43,6 +50,15 @@ name = "memchr"
 version = "2.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
+
+[[package]]
+name = "priority-queue"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12c349103858e4f8dd8eca2788f6d7b2f351ce77517d0227e6ea698f2a6110d2"
+dependencies = [
+ "indexmap",
+]
 
 [[package]]
 name = "regex"
