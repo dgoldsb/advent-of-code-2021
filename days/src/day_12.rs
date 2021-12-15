@@ -21,29 +21,29 @@ fn parse_input() -> HashMap<String, HashSet<String>> {
 }
 
 fn find_paths(
-    route: &Vec<String>,
+    route: &Vec<&String>,
     input: &HashMap<String, HashSet<String>>,
     allow_single_double: bool,
-) -> Vec<Vec<String>> {
+) -> usize {
     let current = route.last().unwrap();
-    if current.clone() == "end".to_string() {
-        return vec![route.clone()];
+    if **current == "end".to_string() {
+        return 1;
     }
 
-    let mut paths = Vec::new();
-    for next in input.get(current).unwrap() {
-        let is_start = next.clone() == "start".to_string();
-        let is_upper = next.to_uppercase() == next.clone();
-        if is_upper || !route.contains(next) || (allow_single_double && !is_start) {
+    let mut paths = 0;
+    for next in input.get(*current).unwrap() {
+        let is_start = *next == "start".to_string();
+        let is_upper = next.to_uppercase() == *next;
+        if is_upper || !route.contains(&next) || (allow_single_double && !is_start) {
             let mut allow_another_double = allow_single_double;
-            if !is_upper && route.contains(next) {
+            if !is_upper && route.contains(&next) {
                 allow_another_double = false;
             }
 
             let mut cloned_vec = route.clone();
-            cloned_vec.push(next.clone());
+            cloned_vec.push(next);
             let result = find_paths(&cloned_vec, input, allow_another_double);
-            paths.extend(result.iter().map(|v| v.clone()));
+            paths += result;
         }
     }
 
@@ -51,7 +51,8 @@ fn find_paths(
 }
 
 fn solve(input: &HashMap<String, HashSet<String>>, allow_single_double: bool) -> usize {
-    find_paths(&vec!["start".to_string()], input, allow_single_double).len()
+    let start = "start".to_string();
+    find_paths(&vec![&start], input, allow_single_double)
 }
 
 pub fn day_12() -> (usize, usize) {
