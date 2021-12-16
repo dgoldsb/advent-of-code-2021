@@ -90,11 +90,51 @@ fn recursive_sum(input: &Packet) -> usize {
     sum
 }
 
+fn recursive_eval(input: &Packet) -> usize {
+    let subvalues = input
+        .sub_packets
+        .iter()
+        .map(|p| recursive_eval(p))
+        .collect::<Vec<usize>>();
+
+    match input.type_ {
+        0 => subvalues.iter().sum(),
+        1 => subvalues.iter().fold(1, |a, b| a * b),
+        2 => *subvalues.iter().min().unwrap(),
+        3 => *subvalues.iter().max().unwrap(),
+        4 => input.literal,
+        5 => {
+            if subvalues.get(0).unwrap() > subvalues.get(1).unwrap() {
+                1
+            } else {
+                0
+            }
+        }
+        6 => {
+            if subvalues.get(0).unwrap() < subvalues.get(1).unwrap() {
+                1
+            } else {
+                0
+            }
+        }
+        7 => {
+            if subvalues.get(0).unwrap() == subvalues.get(1).unwrap() {
+                1
+            } else {
+                0
+            }
+        }
+        _ => {
+            panic!("cannot eval")
+        }
+    }
+}
+
 fn solve(input: &Packet, part_a: bool) -> usize {
     if part_a {
         recursive_sum(input)
     } else {
-        0
+        recursive_eval(input)
     }
 }
 
