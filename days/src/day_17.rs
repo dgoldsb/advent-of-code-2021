@@ -30,7 +30,7 @@ fn hits_target(x: isize, y: isize, dx: isize, dy: isize, target: &Target) -> (bo
     }
 }
 
-fn solve(target: &Target, part_a: bool) -> usize {
+fn solve(target: &Target) -> (usize, usize) {
     let mut results = Vec::new();
     for dx in 0..=target.x1 {
         for dy in target.y0..1000 {
@@ -40,11 +40,7 @@ fn solve(target: &Target, part_a: bool) -> usize {
             }
         }
     }
-    if part_a {
-        *results.iter().max().unwrap() as usize
-    } else {
-        results.len()
-    }
+    (*results.iter().max().unwrap() as usize, results.len())
 }
 
 pub fn day_17() -> (usize, usize) {
@@ -56,5 +52,5 @@ pub fn day_17() -> (usize, usize) {
         y0: *iter.next().unwrap(),
         y1: *iter.next().unwrap(),
     };
-    (solve(&target, true), solve(&target, false))
+    solve(&target)
 }
