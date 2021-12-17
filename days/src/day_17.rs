@@ -32,8 +32,8 @@ fn hits_target(x: isize, y: isize, dx: isize, dy: isize, target: &Target) -> (bo
 
 fn solve(target: &Target, part_a: bool) -> usize {
     let mut results = Vec::new();
-    for dx in -1000..1000 {
-        for dy in -1000..1000 {
+    for dx in 0..=target.x1 {
+        for dy in target.y0..1000 {
             let result = hits_target(0, 0, dx, dy, target);
             if result.0 {
                 results.push(result.1);
