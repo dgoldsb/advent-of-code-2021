@@ -58,12 +58,9 @@ impl Add for SnailNumber {
         if self == SnailNumber::default() {
             other
         } else {
-            let mut number = Self {
-                nest: Option::Some((Box::new(self), Box::new(other))),
-                ..Default::default()
-            };
-            number.reduce();
-            number
+            let str = format!("[{},{}]", self, other);
+            let reduced_number = reduce(&str);
+            SnailNumber::from_str(&reduced_number).unwrap()
         }
     }
 }
@@ -105,7 +102,16 @@ impl FromStr for SnailNumber {
                         }
                     }
                 }
-                panic!(format!("invalid snail number '{}'", input))
+
+                // Last resort to resolve syntax error.
+                if input.len() > 2 {
+                    let mut stripped_input = input.to_string();
+                    stripped_input = stripped_input.replace("[[", "[");
+                    stripped_input = stripped_input.replace("]]", "]");
+                    return SnailNumber::from_str(&stripped_input);
+                } else {
+                    panic!(format!("invalid snail number '{}'", input));
+                }
             }
         }
     }
@@ -119,90 +125,111 @@ impl PartialEq for SnailNumber {
 
 impl Eq for SnailNumber {}
 
-impl SnailNumber {
-    fn reduce(&mut self) {
-        let mut current = SnailNumber::default();
+fn reduce(str: &String) -> String {
+    let mut current = str.clone();
+    let mut previous: String = "".to_string();
 
-        while current != *self {
-            current = (*self).clone();
-            self.explode();
-
-            if current == *self {
-                // Only split if we did not explode.
-                self.split();
-            }
+    while current != previous {
+        previous = current.clone();
+        current = explode(&current);
+        if current == previous {
+            // Only split if we did not explode.
+            current = split(&current);
         }
     }
+    current
+}
 
-    fn explode(&mut self) {
-        let re = Regex::new(r"(\[\d+,\d+\])").unwrap();
-        let string = format!("{}", self);
+fn explode(str: &String) -> String {
+    let re = Regex::new(r"(\[\d+,\d+\])").unwrap();
+    let last = Regex::new(r"\D(\d+)\D+$").unwrap();
+    let third = Regex::new(r"^\D+\d+\D+\d+\D+(\d+)\D").unwrap();
+    let string = str.clone();
 
-        let mut depth = 0;
-        for (i, c) in string.chars().enumerate() {
-            // Update the depth.
-            match c {
-                '[' => {
-                    depth += 1;
-                }
-                ']' => {
-                    depth -= 1;
-                }
-                _ => {
-                    if depth >= 4 {
-                        // Explode at this index!
-                        let strings = string.split_at(i - 1);
+    let mut depth = 0;
+    for (i, c) in string.chars().enumerate() {
+        // Update the depth.
+        match c {
+            '[' => {
+                depth += 1;
+            }
+            ']' => {
+                depth -= 1;
+            }
+            _ => {
+                if depth >= 5 {
+                    // Explode at this index!
+                    let strings = string.split_at(i - 1);
 
-                        // Find and parse the bit that explodes.
-                        let exploding_string = re
-                            .captures_iter(strings.1)
-                            .next()
-                            .unwrap()
-                            .get(0)
-                            .unwrap()
-                            .as_str();
-                        let ints = ints_from_str(&exploding_string.to_string());
-                        let left = ints.get(0).unwrap();
-                        let right = ints.get(1).unwrap();
+                    // Find and parse the bit that explodes.
+                    let exploding_string = re
+                        .captures_iter(strings.1)
+                        .next()
+                        .unwrap()
+                        .get(1)
+                        .unwrap()
+                        .as_str();
+                    let ints = ints_from_str(&exploding_string.to_string());
+                    let left = ints.get(0).unwrap();
+                    let right = ints.get(1).unwrap();
 
-                        // Find the last integer to the left and add `left` to it, if any.
-                        let left_str = strings.0;
-                        // TODO
+                    // Find the last integer to the left and add `left` to it, if any.
+                    let mut left_str = strings.0.to_string();
+                    let found_option = last.captures_iter(&left_str).next();
+                    if found_option.is_some() {
+                        let full_found = found_option.unwrap().get(0).unwrap().as_str().to_string();
+                        let found: isize = *ints_from_str(&full_found).get(0).unwrap();
+                        let replacement = found + left;
 
-                        // Find the third integer to the right and add `right` to it, if any.
-                        let right_str = strings.1;
-                        // TODO
-
-                        // Put it all back together and parse.
-                        let concat = left_str.to_string() + right_str;
-                        let new_snail_number = SnailNumber::from_str(&concat).unwrap();
-                        self.literal = new_snail_number.literal;
-                        self.nest = new_snail_number.nest;
-                        return;
+                        let new_left_str = last.replace(
+                            &left_str,
+                            &full_found.replace(&found.to_string(), &replacement.to_string()),
+                        );
+                        left_str = new_left_str.into_owned();
                     }
+
+                    // Find the third integer to the right and add `right` to it, if any.
+                    let mut right_str = strings.1.to_string();
+                    let found_option = third.captures_iter(&right_str).next();
+                    if found_option.is_some() {
+                        let full_found = found_option.unwrap().get(0).unwrap().as_str().to_string();
+                        let found: isize = *ints_from_str(&full_found).get(2).unwrap();
+                        let replacement = found + right;
+                        let foo = full_found.replace(&found.to_string(), &replacement.to_string());
+                        let replacement_string = re.replace(&foo, &"".to_string());
+
+                        let new_right_str = third.replace(&right_str, &replacement_string);
+                        right_str = new_right_str.into_owned();
+                    }
+
+                    // Put it all back together and parse.
+                    let concat = left_str + "0" + &right_str;
+
+                    return concat;
                 }
             }
         }
     }
+    return string;
+}
 
-    fn split(&mut self) {
-        // Split the first number larger than 10.
-        let string = format!("{}", self);
-        let ints = ints_from_str(&string);
-        for int in ints {
-            if int > 9 {
-                let left = int / 2;
-                let right = int - left;
-                let replacement = format!("[{},{}]", left, right);
-                let replaced_string = string.replacen(&format!("{}", int), &replacement, 1);
-                let new_snail_number = SnailNumber::from_str(&replaced_string).unwrap();
-                self.literal = new_snail_number.literal;
-                self.nest = new_snail_number.nest;
-                return;
-            }
+fn split(str: &String) -> String {
+    // Split the first number larger than 10.
+    let string = str.clone();
+    let ints = ints_from_str(&string);
+    for int in ints {
+        if int > 9 {
+            let left = int / 2;
+            let right = int - left;
+            let replacement = format!("[{},{}]", left, right);
+            let replaced_string = string.replacen(&format!("{}", int), &replacement, 1);
+            return replaced_string;
         }
     }
+    return string;
+}
 
+impl SnailNumber {
     fn magnitude(&self) -> usize {
         match self.literal {
             Some(n) => n,
@@ -286,5 +313,37 @@ mod tests {
         ];
         let result = format!("{}", input.iter().map(|s| s.clone()).sum::<SnailNumber>());
         assert_eq!(result, "[[[[3,0],[5,3]],[4,4]],[5,5]]");
+    }
+
+    #[test]
+    fn harder_test() {
+        let input = vec![
+            SnailNumber::from_str("[1,1]").unwrap(),
+            SnailNumber::from_str("[2,2]").unwrap(),
+            SnailNumber::from_str("[3,3]").unwrap(),
+            SnailNumber::from_str("[4,4]").unwrap(),
+            SnailNumber::from_str("[5,5]").unwrap(),
+            SnailNumber::from_str("[6,6]").unwrap(),
+        ];
+        let result = format!("{}", input.iter().map(|s| s.clone()).sum::<SnailNumber>());
+        assert_eq!(result, "[[[[5,0],[7,4]],[5,5]],[6,6]]");
+    }
+
+    #[test]
+    fn hardest_test() {
+        let input = vec![
+            SnailNumber::from_str("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]").unwrap(),
+            SnailNumber::from_str("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]").unwrap(),
+            SnailNumber::from_str("[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]").unwrap(),
+            SnailNumber::from_str("[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]").unwrap(),
+            SnailNumber::from_str("[7,[5,[[3,8],[1,4]]]]").unwrap(),
+            SnailNumber::from_str("[[2,[2,2]],[8,[8,1]]]").unwrap(),
+            SnailNumber::from_str("[2,9]").unwrap(),
+            SnailNumber::from_str("[1,[[[9,3],9],[[9,0],[0,7]]]]").unwrap(),
+            SnailNumber::from_str("[[[5,[7,4]],7],1]").unwrap(),
+            SnailNumber::from_str("[[[[4,2],2],6],[8,7]]").unwrap(),
+        ];
+        let result = format!("{}", input.iter().map(|s| s.clone()).sum::<SnailNumber>());
+        assert_eq!(result, "[[[[4,2],2],6],[8,7]]");
     }
 }
