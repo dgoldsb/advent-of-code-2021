@@ -253,7 +253,16 @@ fn solve(input: &Vec<SnailNumber>, part_a: bool) -> usize {
             .sum::<SnailNumber>()
             .magnitude()
     } else {
-        0
+        let mut largest: usize = 0;
+        for x in input {
+            for y in input {
+                let result = (x.clone() + y.clone()).magnitude();
+                if result > largest {
+                    largest = result;
+                }
+            }
+        }
+        largest
     }
 }
 
