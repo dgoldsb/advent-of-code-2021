@@ -130,6 +130,7 @@ fn reduce(str: &String) -> String {
     let mut previous: String = "".to_string();
 
     while current != previous {
+        println!("{}", current);
         previous = current.clone();
         current = explode(&current);
         if current == previous {
@@ -316,6 +317,16 @@ mod tests {
     }
 
     #[test]
+    fn explode_right() {
+        let input = vec![
+            SnailNumber::from_str("[1,1]").unwrap(),
+            SnailNumber::from_str("[1,[1,[0,[11,8]]]]").unwrap(),
+        ];
+        let result = format!("{}", input.iter().map(|s| s.clone()).sum::<SnailNumber>());
+        assert_eq!(result, "[[1,1],[7,[0,6]]]");
+    }
+
+    #[test]
     fn harder_test() {
         let input = vec![
             SnailNumber::from_str("[1,1]").unwrap(),
@@ -331,6 +342,7 @@ mod tests {
 
     #[test]
     fn hardest_test() {
+        panic!("foo");
         let input = vec![
             SnailNumber::from_str("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]").unwrap(),
             SnailNumber::from_str("[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]").unwrap(),
