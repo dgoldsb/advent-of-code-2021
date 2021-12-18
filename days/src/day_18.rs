@@ -1,5 +1,6 @@
-use aoc::parse_lines;
 use aoc::ints_from_str;
+use aoc::parse_lines;
+use regex::Regex;
 use std::default::Default;
 use std::iter::Sum;
 use std::ops::Add;
@@ -88,7 +89,7 @@ impl FromStr for SnailNumber {
             Err(_) => {
                 let s = &input[1..input.len() - 1];
                 for i in 0..s.len() {
-                    let m = &s[i..i+1].chars().next().unwrap();
+                    let m = &s[i..i + 1].chars().next().unwrap();
                     if *m == ',' {
                         let s1 = &s[0..i];
                         let s2 = &s[i + 1..s.len()];
@@ -109,8 +110,6 @@ impl FromStr for SnailNumber {
         }
     }
 }
-
-
 
 impl PartialEq for SnailNumber {
     fn eq(&self, other: &Self) -> bool {
@@ -136,7 +135,54 @@ impl SnailNumber {
     }
 
     fn explode(&mut self) {
-        // Explode the first snail number that is recursed too deep.
+        let re = Regex::new(r"(\[\d+,\d+\])").unwrap();
+        let string = format!("{}", self);
+
+        let mut depth = 0;
+        for (i, c) in string.chars().enumerate() {
+            // Update the depth.
+            match c {
+                '[' => {
+                    depth += 1;
+                }
+                ']' => {
+                    depth -= 1;
+                }
+                _ => {
+                    if depth >= 4 {
+                        // Explode at this index!
+                        let strings = string.split_at(i - 1);
+
+                        // Find and parse the bit that explodes.
+                        let exploding_string = re
+                            .captures_iter(strings.1)
+                            .next()
+                            .unwrap()
+                            .get(0)
+                            .unwrap()
+                            .as_str();
+                        let ints = ints_from_str(&exploding_string.to_string());
+                        let left = ints.get(0).unwrap();
+                        let right = ints.get(1).unwrap();
+
+                        // Find the last integer to the left and add `left` to it, if any.
+                        let left_str = strings.0;
+                        // TODO
+
+                        // Find the third integer to the right and add `right` to it, if any.
+                        let right_str = strings.1;
+                        // TODO
+
+                        // Put it all back together and parse.
+                        let concat = left_str.to_string() + right_str;
+                        let new_snail_number = SnailNumber::from_str(&concat).unwrap();
+                        self.literal = new_snail_number.literal;
+                        self.nest = new_snail_number.nest;
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     fn split(&mut self) {
@@ -170,7 +216,6 @@ impl SnailNumber {
 
 fn solve(input: &Vec<SnailNumber>, part_a: bool) -> usize {
     if part_a {
-        println!("{}", input.iter().map(|s| s.clone()).sum::<SnailNumber>());
         input
             .iter()
             .map(|s| s.clone())
@@ -193,8 +238,8 @@ pub fn day_18() -> (usize, usize) {
 
 #[cfg(test)]
 mod tests {
-    use crate::day_18::{is_balanced, solve};
     use crate::day_18::SnailNumber;
+    use crate::day_18::{is_balanced, solve};
     use std::str::FromStr;
 
     #[test]
