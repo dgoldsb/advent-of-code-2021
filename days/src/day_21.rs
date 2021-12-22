@@ -1,6 +1,6 @@
 use aoc::parse_ints;
-use std::collections::HashMap;
 use std::cmp::max;
+use std::collections::HashMap;
 
 struct DeterministicDie {
     next_value: usize,
@@ -62,7 +62,6 @@ fn solve(input: &Vec<isize>, part_a: bool) -> usize {
             // Evolve.
             let mut new_map: HashMap<(usize, usize, usize, usize), usize> = HashMap::new();
             for d1 in 1..=3 {
-
                 for d2 in 1..=3 {
                     for d3 in 1..=3 {
                         for (key, value) in &state_count {
@@ -75,7 +74,7 @@ fn solve(input: &Vec<isize>, part_a: bool) -> usize {
                             } else {
                                 let position_two = (key.1 - 1 + d1 + d2 + d3) % 10 + 1;
                                 let score_two = key.3 + position_two;
-                                new_key = (key.0, position_two, key.1, score_two);
+                                new_key = (key.0, position_two, key.2, score_two);
                             }
 
                             if new_map.contains_key(&new_key) {
@@ -104,7 +103,6 @@ fn solve(input: &Vec<isize>, part_a: bool) -> usize {
             // Finish iteration.
             state_count = new_new_map;
         }
-
         max(p1_win, p2_win)
     }
 }
