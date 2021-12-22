@@ -13,11 +13,21 @@ fn solve(input: &Vec<String>) -> (usize, usize) {
     let default_vec: String = String::new();
     for i in 0..(lines.len() + 2) {
         let si: isize = i as isize - 1;
-        let line = lines.get(si).unwrap_or(&default_vec);
+        let mut line;
+        if si < 0 {
+            line = String::new();
+        } else {
+            line = lines.get(si as usize).unwrap_or(&default_vec).clone();
+        }
 
         for j in 0..(line.len() + 2) {
             let sj = j as isize - 1;
-            let c = line.chars().nth(sj).unwrap_or('.');
+            let c;
+            if sj < 0 {
+                c = '.';
+            } else {
+                c = line.chars().nth(sj as usize).unwrap_or('.');
+            }
             match c {
                 '#' => {lit.insert((si, sj));},
                 '.' => {unlit.insert((si, sj));},
@@ -31,8 +41,8 @@ fn solve(input: &Vec<String>) -> (usize, usize) {
     println!("{}", unlit.len());
 
     let mut default_on = false;
-    let mut part_a = 0;
-    let mut part_b = 0;
+    let part_a = 0;
+    let part_b = 0;
     for i in 0..50 {
         panic!("");
     }
