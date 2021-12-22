@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use aoc::parse_lines;
 use aoc::ints_from_str;
 use std::str::FromStr;
+use std::ops::Add;
 
 #[derive(Debug)]
 struct RebootStep {
@@ -22,6 +23,25 @@ impl FromStr for RebootStep {
         let ys = (is.next().unwrap().to_owned(), is.next().unwrap().to_owned());
         let zs = (is.next().unwrap().to_owned(), is.next().unwrap().to_owned());
         return Ok(RebootStep { on, xs, ys, zs })
+    }
+}
+
+impl Add for RebootStep {
+    type Output = Vec<RebootStep>;
+    fn add(self, other: RebootStep) -> Vec<RebootStep> {
+        let mut result = Vec::new();
+
+        // Calculate all cubes that remain when we overlap the two.
+        // TODO.
+
+        result
+    }
+
+}
+
+impl RebootStep {
+    fn is_valid(self) -> bool {
+        (self.xs.0 < self.xs.1) && (self.ys.0 < self.ys.1) && (self.zs.0 < self.zs.1)
     }
 }
 
