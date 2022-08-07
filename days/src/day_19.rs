@@ -1,5 +1,6 @@
 use aoc::parse_items;
 use std::collections::{HashSet, VecDeque};
+use std::convert::TryInto;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -192,7 +193,7 @@ impl Sensor {
                 c.x = z;
             }
             _ => {
-                panic!(format!("unknown rotation {}", self.rotation));
+                panic!("unknown rotation {}", self.rotation);
             }
         };
     }
@@ -234,7 +235,7 @@ impl Sensor {
     }
 }
 
-fn solve(input: &Vec<Sensor>, _part_a: bool) -> usize {
+fn solve(input: &Vec<Sensor>) -> (usize, usize) {
     let mut queue: VecDeque<Sensor> = input
         .iter()
         .map(|r| r.clone())
@@ -244,6 +245,9 @@ fn solve(input: &Vec<Sensor>, _part_a: bool) -> usize {
     // Pop the first, this is our starting point.
     let first = queue.pop_front().unwrap();
     found_set.extend(first.yield_set());
+
+    let mut sensors: Vec<Coordinate> = Vec::new();
+    sensors.push(first.location);
 
     // Now try to match the next with a circular buffer, once the buffer is empty we are done.
     while !queue.is_empty() {
@@ -259,6 +263,7 @@ fn solve(input: &Vec<Sensor>, _part_a: bool) -> usize {
             // Set the rotation to a new value.
             next.rotation = rotation;
 
+            // TODO: Performance can be found here.
             for shift in next.feasible_shifts(&found_set) {
                 // Set the location of the sensor to a new value.
                 next.location = shift;
@@ -273,6 +278,7 @@ fn solve(input: &Vec<Sensor>, _part_a: bool) -> usize {
                 if overlap.len() >= 12 {
                     found_set.extend(next_set);
                     found = true;
+                    sensors.push(next.location.clone());
                     break;
                 }
             }
@@ -281,10 +287,23 @@ fn solve(input: &Vec<Sensor>, _part_a: bool) -> usize {
         // If no match was found, add to the back of the circular buffer.
         if !found {
             queue.push_back(next);
-            panic!("failed");
         }
     }
-    found_set.len()
+
+    let mut distances: Vec<isize> = Vec::new();
+    for sensor_a in &sensors {
+        for sensor_b in &sensors {
+            distances.push(
+                (sensor_a.x - sensor_b.x).abs()
+                    + (sensor_a.y - sensor_b.y).abs()
+                    + (sensor_a.z - sensor_b.z).abs(),
+            );
+        }
+    }
+
+    let furthest_distance: usize = (*distances.iter().max().unwrap()).try_into().unwrap();
+
+    (found_set.len(), furthest_distance)
 }
 
 pub fn day_19() -> (usize, usize) {
@@ -293,5 +312,5 @@ pub fn day_19() -> (usize, usize) {
         .iter()
         .map(|s| Sensor::from_str(s).unwrap())
         .collect::<Vec<Sensor>>();
-    (solve(&sensors, true), solve(&sensors, false))
+    solve(&sensors)
 }

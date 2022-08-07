@@ -57,7 +57,6 @@ fn solve(input: &Vec<isize>, part_a: bool) -> usize {
         let mut p1_win = 0;
         let mut p2_win = 0;
 
-        let default = 0;
         for i in 0..1000 {
             // Evolve.
             let mut new_map: HashMap<(usize, usize, usize, usize), usize> = HashMap::new();

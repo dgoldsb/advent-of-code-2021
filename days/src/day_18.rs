@@ -110,7 +110,7 @@ impl FromStr for SnailNumber {
                     stripped_input = stripped_input.replace("]]", "]");
                     return SnailNumber::from_str(&stripped_input);
                 } else {
-                    panic!(format!("invalid snail number '{}'", input));
+                    panic!("invalid snail number '{}'", input);
                 }
             }
         }
