@@ -1,4 +1,5 @@
-// Disclaimer: this one got messy, not very clean code.
+// Disclaimer: this one got messy, I decided to go for a range but that came back to
+// haunt me as it does not implement the Copy trait, resulting in excessive cloning.
 use aoc::ints_from_str;
 use aoc::parse_lines;
 use std::cmp::max;
@@ -76,7 +77,7 @@ impl Cuboid {
         };
     }
 
-    // Get up to 7 cuboids, minus the inner, so 6.
+    // Get up to 7 cuboids.
     fn get_many_cuboids(self, inner: &Cuboid) -> Vec<Cuboid> {
         let mut output: Vec<Cuboid> = Vec::new();
 
@@ -136,10 +137,9 @@ impl Cuboid {
         let joint_cuboid = self.intersection(other);
 
         if !joint_cuboid.clone().is_valid() {
-            return vec![];
+            return vec![other.clone()];
         }
 
-        // Find the 8 recessive cuboids.
         other.clone().get_many_cuboids(&joint_cuboid)
     }
 }
@@ -150,13 +150,8 @@ fn solve(input: &Vec<String>) -> (usize, usize) {
     for new_cuboid in input.iter().map(|s| Cuboid::from_str(s).unwrap()) {
         let mut new_cuboids = HashSet::new();
         for cuboid in cuboid_set {
-            let shards = new_cuboid.clone().shatter(&cuboid);
-            if shards.len() > 0 {
-                for shard in new_cuboid.clone().shatter(&cuboid) {
-                    new_cuboids.insert(shard);
-                }
-            } else {
-                new_cuboids.insert(cuboid);
+            for shard in new_cuboid.clone().shatter(&cuboid) {
+                new_cuboids.insert(shard);
             }
         }
         new_cuboids.insert(new_cuboid);
