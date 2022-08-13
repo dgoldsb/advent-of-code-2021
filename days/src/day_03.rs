@@ -69,7 +69,7 @@ fn recursive_filter(instruction_set: &HashSet<String>, index: usize, invert: boo
     }
 
     if new_set.len() == 1 {
-        new_set.iter().next().unwrap().clone()
+        new_set.into_iter().next().unwrap()
     } else {
         recursive_filter(&new_set, index + 1, invert)
     }

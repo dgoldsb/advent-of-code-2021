@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 aoc = { path = "../aoc" }
+lazy_static = "1.4.0"
 md5 = "0.7.0"
 regex = "1.4.3"
 priority-queue = "0.5.2"

@@ -125,8 +125,7 @@ impl Cuboid {
         });
 
         output
-            .iter()
-            .map(|c| c.clone())
+            .into_iter()
             .filter(|c| c.clone().is_valid())
             .collect()
     }
