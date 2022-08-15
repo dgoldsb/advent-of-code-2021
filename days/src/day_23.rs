@@ -1,64 +1,50 @@
 extern crate lazy_static;
 
+use aoc::manhattan_distance;
 use aoc::parse_chars;
-use core::cmp::max;
-use core::cmp::min;
 use lazy_static::lazy_static;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashSet;
 
+const TRANSFER_ROW: usize = 1;
+
 lazy_static! {
-    static ref UNSTABLE: HashSet<(usize, usize)> = vec![(3, 1), (5, 1), (7, 1), (9, 1)].into_iter().collect();
+    static ref UNSTABLE: HashSet<(usize, usize)> =
+        vec![(3, 1), (5, 1), (7, 1), (9, 1)].into_iter().collect();
 }
 
-#[derive(Debug, PartialEq, Eq)]
-struct State {
-    // Easy way to make a max-heap a min-heap: we go with negative scores.
-    cost: isize,
-
-    // The map.
-    // TODO: Extract this, can be derived.
-    available: HashSet<(usize, usize)>,
-
-    // The amphipods.
-    // TODO: Split these, each amphipod is their own being.
-    amber: HashSet<(usize, usize)>,
-    bronze: HashSet<(usize, usize)>,
-    copper: HashSet<(usize, usize)>,
-    desert: HashSet<(usize, usize)>,
+lazy_static! {
+    static ref POSSIBLE: HashSet<(usize, usize)> = vec![
+        (9, 1),
+        (6, 1),
+        (4, 1),
+        (11, 1),
+        (2, 1),
+        (8, 1),
+        (10, 1),
+        (5, 1),
+        (3, 1),
+        (7, 1),
+        (1, 1),
+        (3, 2),
+        (3, 3),
+        (5, 2),
+        (5, 3),
+        (7, 2),
+        (7, 3),
+        (9, 2),
+        (9, 3)
+    ]
+    .into_iter()
+    .collect();
 }
 
-// TODO: Get hash for free.
-impl Hash for State {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        let hashable_state = (
-            (min(), max()),
-            (min(), max()),
-            (min(), max()),
-            (min(), max()),
-        );
-        self.id.hash(hashable_state);
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.cost.cmp(&other.cost)
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-fn cartesian_distance(start: &(usize, usize), end: &(usize, usize)) -> usize {
-    (max(start.0, end.0) - min(start.0, end.0)) + (max(start.1, end.1) - min(start.1, end.1))
-}
-
-fn is_reachable(start: &(usize, usize), end: &(usize, usize), available: &HashSet<(usize, usize)>) -> bool {
+fn is_reachable(
+    start: &(usize, usize),
+    end: &(usize, usize),
+    available: &HashSet<(usize, usize)>,
+) -> bool {
     if start == end {
         return true;
     }
@@ -98,157 +84,158 @@ fn is_reachable(start: &(usize, usize), end: &(usize, usize), available: &HashSe
     up_down || side
 }
 
-impl State {
-    fn finished(&self) -> bool {
-        return self.amber.contains(&(3, 2))
-            && self.amber.contains(&(3, 3))
-            && self.bronze.contains(&(5, 2))
-            && self.bronze.contains(&(5, 3))
-            && self.copper.contains(&(7, 2))
-            && self.copper.contains(&(7, 3))
-            && self.desert.contains(&(9, 2))
-            && self.desert.contains(&(9, 3));
-    }
+#[derive(Copy, Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
+struct Amphipod {
+    location: (usize, usize),
+    cost_per_move: isize,
+}
 
-    fn next_states_per_cost(
-        &self,
-        amphipods: &HashSet<(usize, usize)>,
-        cost_per_move: usize,
-    ) -> Vec<State> {
-        let mut output = Vec::new();
-
-        let transfer_row = 1;
-        let home_column = match cost_per_move {
+impl Amphipod {
+    fn home_column(&self) -> usize {
+        match self.cost_per_move {
             1 => 3,
             10 => 5,
             100 => 7,
             1000 => 9,
             _ => panic!("Unexpected cost"),
-        };
-
-        for amphipod in amphipods {
-            // Continue if shrimp is in home column and the spot below is not taken.
-            if amphipod.0 == home_column {
-                if amphipod.1 == 3 {
-                    // The deepest, we can continue for sure.
-                }
-                // It is the top position, so we need to check the one below.
-                // TODO: Deeper is recursive.
-                let deeper = (amphipod.0, amphipod.1 + 1);
-                if self.amber.contains(&deeper) && cost_per_move == 1 {
-                    continue;
-                }
-                if self.bronze.contains(&deeper) && cost_per_move == 10 {
-                    continue;
-                }
-                if self.copper.contains(&deeper) && cost_per_move == 100 {
-                    continue;
-                }
-                if self.desert.contains(&deeper) && cost_per_move == 1000 {
-                    continue;
-                }
-            }
-
-            for available_spot in &self.available {
-                // If you go into a room, go all the way.
-                let deeper = (available_spot.0, available_spot.1 + 1);
-                if self.available.contains(&deeper) {
-                    continue;
-                }
-
-                // Amphipods will never move from the hallway into a room unless
-                // that room contains no amphipods which do not also have that
-                // room as their own destination.
-                if self.amber.contains(&deeper) && cost_per_move != 1 {
-                    continue;
-                }
-                if self.bronze.contains(&deeper) && cost_per_move != 10 {
-                    continue;
-                }
-                if self.copper.contains(&deeper) && cost_per_move != 100 {
-                    continue;
-                }
-                if self.desert.contains(&deeper) && cost_per_move != 1000 {
-                    continue;
-                }
-
-                // Continue if location is unstable.
-                if UNSTABLE.contains(&available_spot) {
-                    continue;
-                }
-
-                // Continue if location is in same row.
-                // println!("{}", cost_per_move);
-                // println!("{:?} {:?}", amphipod, available_spot);
-                if amphipod.1 == available_spot.1 {
-                    continue;
-                }
-
-                // Continue if location is not in home column or transfer row.
-                if !(available_spot.1 == transfer_row || available_spot.0 == home_column) {
-                    continue;
-                }
-
-                // Continue if not reachable.
-                if !is_reachable(amphipod, &available_spot, &self.available) {
-                    continue;
-                }
-
-                // Calculate the distance (and thus cost).
-                let distance: usize = cartesian_distance(amphipod, &available_spot);
-
-                // Create the new state.
-                let mut new_amber = self.amber.clone();
-                let mut new_bronze = self.bronze.clone();
-                let mut new_copper = self.copper.clone();
-                let mut new_desert = self.desert.clone();
-                let mut new_available = self.available.clone();
-
-                new_available.remove(&available_spot);
-                new_available.insert(amphipod.clone());
-
-                match cost_per_move {
-                    1 => {
-                        new_amber.remove(amphipod);
-                        new_amber.insert(*available_spot);
-                    },
-                    10 => {
-                        new_bronze.remove(amphipod);
-                        new_bronze.insert(*available_spot);
-                    },
-                    100 => {
-                        new_copper.remove(amphipod);
-                        new_copper.insert(*available_spot);
-                    },
-                    1000 => {
-                        new_desert.remove(amphipod);
-                        new_desert.insert(*available_spot);
-                    },
-                    _ => panic!("Unexpected cost"),
-                }
-
-                // Clone the state, with the two locations switched.
-                output.push(
-                    State {
-                        cost: self.cost - (distance * cost_per_move) as isize,
-                        available: new_available,
-                        amber: new_amber,
-                        bronze: new_bronze,
-                        copper: new_copper,
-                        desert: new_desert,
-                    }
-                );
-            }
         }
-        output
+    }
+
+    fn is_home(&self) -> bool {
+        return self.location.0 == self.home_column();
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+struct State {
+    // Easy way to make a max-heap a min-heap: we go with negative scores.
+    cost: isize,
+    // A state consists of 8-16 amphipodes.
+    amphipodes: Vec<Amphipod>,
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.cost.cmp(&other.cost)
+    }
+}
+
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl State {
+    fn finished(&self) -> bool {
+        self.amphipodes.iter().all(|a| a.is_home())
+    }
+
+    fn taken(&self) -> HashSet<(usize, usize)> {
+        self.amphipodes.iter().map(|a| a.location).collect()
+    }
+
+    fn available(&self) -> HashSet<(usize, usize)> {
+        POSSIBLE
+            .difference(&self.taken())
+            .map(|l| l.clone())
+            .collect::<HashSet<(usize, usize)>>()
+    }
+
+    // TODO: reuse in next?
+    fn get_deepest(&self, available: &HashSet<(usize, usize)>, current: &(usize, usize)) -> (usize, usize) {
+        let deeper = (current.0, current.1 + 1);
+
+        return if available.contains(&deeper) {
+            self.get_deepest(available, &deeper)
+        } else {
+            *current
+        };
+    }
+
+    fn deeper_amphipodes_are_of_same_type(
+        &self,
+        original: &Amphipod,
+        current: &(usize, usize),
+    ) -> bool {
+        let deeper = (current.0, current.1 + 1);
+
+        let this_okay = self
+            .amphipodes
+            .iter()
+            .filter(|a| a.location == deeper)
+            .filter(|a| a.cost_per_move != original.cost_per_move)
+            .collect::<Vec<&Amphipod>>()
+            .len()
+            == 0;
+
+        return if POSSIBLE.contains(&deeper) {
+            self.deeper_amphipodes_are_of_same_type(original, &deeper) && this_okay
+        } else {
+            this_okay
+        };
+    }
+
+    fn amphipod_is_home(&self, amphipod: Amphipod) -> bool {
+        amphipod.is_home() && self.deeper_amphipodes_are_of_same_type(&amphipod, &amphipod.location)
+    }
+
+    fn is_valid_move(&self, amphipod: Amphipod, target: &(usize, usize)) -> bool {
+        // The amphipod cannot move deeper.
+        (target == &self.get_deepest(&self.available(), target)) &&
+        // Amphipods will never move from the hallway into a room unless
+        // that room contains no amphipods which do not also have that
+        // room as their own destination.
+        self.deeper_amphipodes_are_of_same_type(&amphipod, target) &&
+        // The location is not unstable.
+        !UNSTABLE.contains(target) &&
+        // The location is not in same row.
+        (amphipod.location.1 != target.1) &&
+        // Target location is transfer row or home column.
+        (target.1 == TRANSFER_ROW || target.0 == amphipod.home_column()) &&
+        // The location is reachable.
+        is_reachable(&amphipod.location, target, &self.available())
+    }
+
+    fn next_states_for_amphipod(&self, amphipod: Amphipod) -> Vec<State> {
+        let mut output = Vec::new();
+
+        // Continue if shrimp is in home column and the spot below is not taken.
+        if self.amphipod_is_home(amphipod) {
+            return output;
+        }
+
+        for available_spot in self.available() {
+            if !self.is_valid_move(amphipod, &available_spot) {
+                continue;
+            }
+
+            // Create the new state.
+            let distance = manhattan_distance(&amphipod.location, &available_spot);
+            let mut new_amphipodes: Vec<Amphipod> = self
+                .amphipodes
+                .iter()
+                .filter(|&a| a != &amphipod)
+                .map(|a| *a)
+                .collect();
+            new_amphipodes.push(Amphipod {
+                cost_per_move: amphipod.cost_per_move,
+                location: available_spot,
+            });
+            new_amphipodes.sort();
+            output.push(State {
+                cost: self.cost - (distance as isize * amphipod.cost_per_move),
+                amphipodes: new_amphipodes,
+            });
+        }
+        return output;
     }
 
     fn next_states(self) -> Vec<State> {
-        self.next_states_per_cost(&self.amber, 1)
-            .into_iter()
-            .chain(self.next_states_per_cost(&self.bronze, 10).into_iter())
-            .chain(self.next_states_per_cost(&self.copper, 100).into_iter())
-            .chain(self.next_states_per_cost(&self.desert, 1000).into_iter())
+        self.amphipodes
+            .iter()
+            .map(|a| self.next_states_for_amphipod(*a))
+            .flatten()
             .collect::<Vec<State>>()
     }
 }
@@ -258,28 +245,20 @@ fn solve(input: State) -> (usize, usize) {
     heap.push(input);
     let part_a;
 
-    // TODO: We need to cache known states, remove duplicates.
+    // We need to cache known states, remove duplicates.
+    // Assumption: the first time we encounter a state is the lowest energy.
     let mut seen_states = HashSet::new();
 
     loop {
         let current = heap.pop().unwrap();
-        // // println!("{:?}", &current.amber);
-        // // println!("{:?}", &current.bronze);
-        // // println!("{:?}", &current.copper);
-        // // println!("{:?}", &current.desert);
-        // println!("{}", &current.cost);
         if current.finished() {
             part_a = (-1 * current.cost) as usize;
             break;
         }
         let next_states = current.next_states();
-        // println!("{:?}", &next_states.len());
-        // if &next_states.len() < &10 {
-        //     panic!("foo");
-        // }
         for next_state in next_states {
             if !seen_states.contains(&next_state) {
-                heap.push(next_state);
+                heap.push(next_state.clone());
                 seen_states.insert(next_state);
             }
         }
@@ -290,33 +269,29 @@ fn solve(input: State) -> (usize, usize) {
 pub fn day_23() -> (usize, usize) {
     let input = parse_chars("day_23".to_string());
 
-    let mut available = HashSet::new();
-    let mut amber = HashSet::new();
-    let mut bronze = HashSet::new();
-    let mut copper = HashSet::new();
-    let mut desert = HashSet::new();
+    let mut amphipodes = Vec::new();
 
     for (i, c) in input.iter().enumerate() {
-        let xy = (i % 14, i / 14);
+        let location = (i % 14, i / 14);
 
-        match c {
-            '#' => true,
-            '.' => available.insert(xy),
-            'A' => amber.insert(xy),
-            'B' => bronze.insert(xy),
-            'C' => copper.insert(xy),
-            'D' => desert.insert(xy),
-            _ => true,
+        let cost_per_move = match c {
+            'A' => 1,
+            'B' => 10,
+            'C' => 100,
+            'D' => 1000,
+            _ => 0,
         };
+        if cost_per_move > 0 {
+            amphipodes.push(Amphipod {
+                cost_per_move,
+                location,
+            })
+        }
     }
 
     let state = State {
         cost: 0,
-        available,
-        amber,
-        bronze,
-        copper,
-        desert,
+        amphipodes,
     };
     solve(state)
 }
@@ -324,31 +299,47 @@ pub fn day_23() -> (usize, usize) {
 #[cfg(test)]
 mod tests {
     use crate::day_23::solve;
+    use crate::day_23::Amphipod;
     use crate::day_23::State;
 
     #[test]
     fn example_case() {
         let state = State {
             cost: 0,
-            available: vec![
-                (9, 1),
-                (6, 1),
-                (4, 1),
-                (11, 1),
-                (2, 1),
-                (8, 1),
-                (10, 1),
-                (5, 1),
-                (3, 1),
-                (7, 1),
-                (1, 1),
-            ]
-            .into_iter()
-            .collect(),
-            amber: vec![(9, 3), (3, 3)].into_iter().collect(),
-            bronze: vec![(7, 2), (3, 2)].into_iter().collect(),
-            copper: vec![(5, 2), (7, 3)].into_iter().collect(),
-            desert: vec![(9, 2), (5, 3)].into_iter().collect(),
+            amphipodes: vec![
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (9, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 3),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (7, 2),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (3, 2),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (5, 2),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (5, 3),
+                },
+            ],
         };
         assert_eq!(solve(state), (12521, 0));
     }
@@ -357,25 +348,40 @@ mod tests {
     fn simple_case() {
         let state = State {
             cost: 0,
-            available: vec![
-                (9, 1),
-                (6, 1),
-                (4, 1),
-                (11, 1),
-                (2, 1),
-                (8, 1),
-                (10, 1),
-                (5, 1),
-                (3, 1),
-                (7, 1),
-                (1, 1),
-            ]
-                .into_iter()
-                .collect(),
-            amber: vec![(3, 2), (3, 3)].into_iter().collect(),
-            bronze: vec![(7, 2), (5, 3)].into_iter().collect(),
-            copper: vec![(5, 2), (7, 3)].into_iter().collect(),
-            desert: vec![(9, 2), (9, 3)].into_iter().collect(),
+            amphipodes: vec![
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 3),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (7, 2),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 3),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (5, 2),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 3),
+                },
+            ],
         };
         assert_eq!(solve(state), (460, 0));
     }
@@ -384,25 +390,40 @@ mod tests {
     fn simplest_case() {
         let state = State {
             cost: 0,
-            available: vec![
-                (9, 1),
-                (6, 1),
-                (4, 1),
-                (11, 1),
-                (2, 1),
-                (8, 1),
-                (10, 1),
-                (5, 1),
-                (3, 1),
-                (7, 1),
-                (1, 1),
-            ]
-            .into_iter()
-            .collect(),
-            amber: vec![(3, 2), (3, 3)].into_iter().collect(),
-            bronze: vec![(5, 2), (5, 3)].into_iter().collect(),
-            copper: vec![(7, 2), (7, 3)].into_iter().collect(),
-            desert: vec![(9, 2), (9, 3)].into_iter().collect(),
+            amphipodes: vec![
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 3),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 2),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 3),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 2),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 3),
+                },
+            ],
         };
         assert_eq!(solve(state), (0, 0));
     }

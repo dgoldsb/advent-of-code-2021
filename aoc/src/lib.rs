@@ -1,3 +1,5 @@
+use core::cmp::max;
+use core::cmp::min;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -78,4 +80,8 @@ pub fn to_bin(number: &usize) -> Vec<char> {
 pub fn from_bin(bin_number: &Vec<char>) -> usize {
     let bin_str: String = bin_number.into_iter().collect();
     return usize::from_str_radix(&bin_str, 2).unwrap();
+}
+
+pub fn manhattan_distance(start: &(usize, usize), end: &(usize, usize)) -> usize {
+    (max(start.0, end.0) - min(start.0, end.0)) + (max(start.1, end.1) - min(start.1, end.1))
 }
