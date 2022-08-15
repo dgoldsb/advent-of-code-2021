@@ -40,6 +40,40 @@ lazy_static! {
     .collect();
 }
 
+lazy_static! {
+    static ref POSSIBLE_B: HashSet<(usize, usize)> = vec![
+        (9, 1),
+        (6, 1),
+        (4, 1),
+        (11, 1),
+        (2, 1),
+        (8, 1),
+        (10, 1),
+        (5, 1),
+        (3, 1),
+        (7, 1),
+        (1, 1),
+        (3, 2),
+        (3, 3),
+        (5, 2),
+        (5, 3),
+        (7, 2),
+        (7, 3),
+        (9, 2),
+        (9, 3),
+        (3, 4),
+        (3, 5),
+        (5, 4),
+        (5, 5),
+        (7, 4),
+        (7, 5),
+        (9, 4),
+        (9, 5),
+    ]
+    .into_iter()
+    .collect();
+}
+
 fn is_reachable(
     start: &(usize, usize),
     end: &(usize, usize),
@@ -136,14 +170,22 @@ impl State {
     }
 
     fn available(&self) -> HashSet<(usize, usize)> {
-        POSSIBLE
-            .difference(&self.taken())
-            .map(|l| l.clone())
-            .collect::<HashSet<(usize, usize)>>()
+        let taken = &self.taken();
+        let set = if self.amphipodes.len() == 8 {
+            POSSIBLE.difference(taken)
+        } else {
+            POSSIBLE_B.difference(taken)
+        };
+
+        set.map(|l| l.clone()).collect::<HashSet<(usize, usize)>>()
     }
 
     // TODO: reuse in next?
-    fn get_deepest(&self, available: &HashSet<(usize, usize)>, current: &(usize, usize)) -> (usize, usize) {
+    fn get_deepest(
+        &self,
+        available: &HashSet<(usize, usize)>,
+        current: &(usize, usize),
+    ) -> (usize, usize) {
         let deeper = (current.0, current.1 + 1);
 
         return if available.contains(&deeper) {
@@ -158,6 +200,7 @@ impl State {
         original: &Amphipod,
         current: &(usize, usize),
     ) -> bool {
+        //todo
         let deeper = (current.0, current.1 + 1);
 
         let this_okay = self
@@ -169,7 +212,13 @@ impl State {
             .len()
             == 0;
 
-        return if POSSIBLE.contains(&deeper) {
+        let contains = if self.amphipodes.len() == 8 {
+            POSSIBLE.contains(&deeper)
+        } else {
+            POSSIBLE_B.contains(&deeper)
+        };
+
+        return if contains {
             self.deeper_amphipodes_are_of_same_type(original, &deeper) && this_okay
         } else {
             this_okay
@@ -240,7 +289,7 @@ impl State {
     }
 }
 
-fn solve(input: State) -> (usize, usize) {
+fn solve(input: State) -> usize {
     let mut heap: BinaryHeap<State> = BinaryHeap::new();
     heap.push(input);
     let part_a;
@@ -263,17 +312,14 @@ fn solve(input: State) -> (usize, usize) {
             }
         }
     }
-    (part_a, 0)
+    part_a
 }
 
-pub fn day_23() -> (usize, usize) {
-    let input = parse_chars("day_23".to_string());
-
+fn parse_input(input: Vec<char>) -> State {
     let mut amphipodes = Vec::new();
 
-    for (i, c) in input.iter().enumerate() {
-        let location = (i % 14, i / 14);
-
+    let mut i = 0;
+    for c in input {
         let cost_per_move = match c {
             'A' => 1,
             'B' => 10,
@@ -282,18 +328,35 @@ pub fn day_23() -> (usize, usize) {
             _ => 0,
         };
         if cost_per_move > 0 {
+            let location = (
+                match i % 4 {
+                    0 => 3,
+                    1 => 5,
+                    2 => 7,
+                    3 => 9,
+                    _ => panic!(),
+                },
+                2 + i / 4,
+            );
+            i = i + 1;
             amphipodes.push(Amphipod {
                 cost_per_move,
                 location,
-            })
+            });
         }
     }
-
-    let state = State {
+    State {
         cost: 0,
         amphipodes,
-    };
-    solve(state)
+    }
+}
+
+pub fn day_23() -> (usize, usize) {
+    // TODO: Remove second input file.
+    let input_a = parse_chars("day_23_a".to_string());
+    let input_b = parse_chars("day_23_b".to_string());
+
+    (solve(parse_input(input_a)), solve(parse_input(input_b)))
 }
 
 #[cfg(test)]
@@ -341,7 +404,7 @@ mod tests {
                 },
             ],
         };
-        assert_eq!(solve(state), (12521, 0));
+        assert_eq!(solve(state), 12521);
     }
 
     #[test]
@@ -383,7 +446,81 @@ mod tests {
                 },
             ],
         };
-        assert_eq!(solve(state), (460, 0));
+        assert_eq!(solve(state), 460);
+    }
+
+    #[test]
+    fn simple_case_b() {
+        let state = State {
+            cost: 0,
+            amphipodes: vec![
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 4),
+                },
+                Amphipod {
+                    cost_per_move: 1,
+                    location: (3, 5),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (7, 2),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 3),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 4),
+                },
+                Amphipod {
+                    cost_per_move: 10,
+                    location: (5, 5),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (5, 2),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 3),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 4),
+                },
+                Amphipod {
+                    cost_per_move: 100,
+                    location: (7, 5),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 2),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 3),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 4),
+                },
+                Amphipod {
+                    cost_per_move: 1000,
+                    location: (9, 5),
+                },
+            ],
+        };
+        assert_eq!(solve(state), 460);
     }
 
     #[test]
@@ -425,6 +562,6 @@ mod tests {
                 },
             ],
         };
-        assert_eq!(solve(state), (0, 0));
+        assert_eq!(solve(state), 0);
     }
 }
