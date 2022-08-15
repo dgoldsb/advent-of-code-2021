@@ -366,48 +366,6 @@ mod tests {
     use crate::day_23::State;
 
     #[test]
-    fn example_case() {
-        let state = State {
-            cost: 0,
-            amphipodes: vec![
-                Amphipod {
-                    cost_per_move: 1,
-                    location: (9, 3),
-                },
-                Amphipod {
-                    cost_per_move: 1,
-                    location: (3, 3),
-                },
-                Amphipod {
-                    cost_per_move: 10,
-                    location: (7, 2),
-                },
-                Amphipod {
-                    cost_per_move: 10,
-                    location: (3, 2),
-                },
-                Amphipod {
-                    cost_per_move: 100,
-                    location: (5, 2),
-                },
-                Amphipod {
-                    cost_per_move: 100,
-                    location: (7, 3),
-                },
-                Amphipod {
-                    cost_per_move: 1000,
-                    location: (9, 2),
-                },
-                Amphipod {
-                    cost_per_move: 1000,
-                    location: (5, 3),
-                },
-            ],
-        };
-        assert_eq!(solve(state), 12521);
-    }
-
-    #[test]
     fn simple_case() {
         let state = State {
             cost: 0,
